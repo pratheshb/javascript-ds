@@ -123,4 +123,110 @@ class BinarySearchTree {
             }
         }
     }
+
+    breadthFirstSearch() {
+        let list = [];
+        let current = this.root;
+        let queue = [current];
+
+        while (queue.length) {
+            current = queue.shift();
+            list.push(current.value);
+            if (current.left) {
+                queue.push(current.left);
+            }
+            if (current.right) {
+                queue.push(current.right);
+            }
+        }
+
+        return list;
+    }
+
+    validateBFS() {
+        let current = this.root;
+        let queue = [current];
+
+        while (queue.length) {
+            current = queue.shift();
+            if (current.left) {
+                if(current.left.value >= current.value) {
+                    return false;
+                }
+                queue.push(current.left);
+            }
+            if (current.right) {
+                if(current.right.value <= current.value) {
+                    return false;
+                }
+                queue.push(current.right);
+            }
+        }
+
+        return true;
+    }
+
+    breadthFirstSearchR(queue, list) {
+        if(!queue.length) {
+            return list;
+        }
+
+        let current = queue.shift();
+        list.push(current.value);
+        if(current.left) {
+            queue.push(current.left);
+        }
+        if(current.right) {
+            queue.push(current.right);
+        }
+
+        return this.breadthFirstSearchR(queue, list);
+    }
+
+    DFSinOrder() {
+       return this.__traverseInOrder(this.root, []);
+    }
+
+    DFSpreOrder() {
+        return this.__traversePreOrder(this.root, []);
+    }
+
+    DFSpostOrder() {
+        return this.__traversePostOrder(this.root, []);
+    }
+
+    __traverseInOrder(current, list) {
+        if(current.left) {
+            this.__traverseInOrder(current.left, list);
+        }
+        list.push(current.value);
+        if (current.right) {
+            this.__traverseInOrder(current.right, list);
+        }
+        return list;
+    }
+
+    __traversePreOrder(current, list) {
+        list.push(current.value);
+        
+        if(current.left) {
+            this.__traversePreOrder(current.left, list);
+        }
+        if (current.right) {
+            this.__traversePreOrder(current.right, list);
+        }
+        return list;
+    }
+
+    __traversePostOrder(current, list) {
+        if(current.left) {
+            this.__traversePostOrder(current.left, list);
+        }
+        if (current.right) {
+            this.__traversePostOrder(current.right, list);
+        }
+
+        list.push(current.value);
+        return list;
+    }
 }
