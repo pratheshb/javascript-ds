@@ -102,21 +102,19 @@ class LinkedList {
   }
 
   reverse() {
-    if(!this.head.next) {
-      return this.__printList();
-    }
 
-    let first = this.head;
+    let next = null;
+    let current = this.head;
+    let prev = null;
+
+    while(current) {
+      next = current.next;
+      current.next = prev;
+      prev = current;
+      current = next;
+    }
     this.tail = this.head;
-    let second = first.next;
-    while(second) {
-      let temp = second.next;
-      second.next = first;
-      first = second;
-      second = temp;
-    }
-
-    this.head.next = null;
-    this.head = first;
+    this.head = prev;
+    return this.__printList();
   }
 }
