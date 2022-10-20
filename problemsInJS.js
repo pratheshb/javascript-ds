@@ -54,16 +54,18 @@ function getDiff(obj1, obj2) {
 
 function promiseAll(promises) {
     const result = [];
-    let resolvedPromiseCount = 0;
+    let count = 0;
     return new Promise((resolve, reject) => {
         promises.forEach((promise, i) => {
-            promise.then(res => {
+            Promise.resolve(promise).then(res => {
                 result[i] = res;
-                resolvedPromiseCount++;
-                if (resolvedPromiseCount === promises.length) {
+                count++;
+                if (count === promises.length) {
                     resolve(result);
                 }
-            }).catch(reject);
+            }, err => {
+                reject(err)
+            });
         });
     });
 }
@@ -71,9 +73,11 @@ function promiseAll(promises) {
 function promiseRace(promises) {
     return new Promise((resolve, reject) => {
         promises.forEach(promise => {
-            promise.then(res => {
+            Promise.resolve(promise).then(res => {
                 resolve(res);
-            }).catch(reject);
+            }, err => {
+                reject(err)
+            });
         });
     });
 }
@@ -129,3 +133,23 @@ function findIndexByBinarySearch(arr, elm, i) {
 }
 
 findIndexByBinarySearch([0, 1, 2, 3, 4, 5], 5) // 5
+
+
+// overcome uncaught promise issue by using a method in promise prototype which ignores the error as of now
+Promise.prototype.defer = function() {
+    this.then(null, () => {});
+    return this;
+};
+
+const p1 = Promise.reject('errr') // will throw uncaught error
+
+const p2 = Promise.reject('errr').defer() // wont show uncaught error as we pass error handler in defer
+
+p2.then(null, err=> console.log(err)); // now error is logged because p2 is rejected and since promises are immutable once they are rejected always rejected
+
+// same in promise constructor
+const p3 = new Promise((resolve, reject) => {
+    reject('err');
+}).defer();
+
+p3.then(null, err => console.log(err));
