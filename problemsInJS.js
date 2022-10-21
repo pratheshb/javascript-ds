@@ -153,3 +153,63 @@ const p3 = new Promise((resolve, reject) => {
 }).defer();
 
 p3.then(null, err => console.log(err));
+
+
+function timeOutPromise(delay) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => reject('time out'), delay);
+    });
+}
+
+const p4 = new Promise(resolve => {
+    setTimeout(() => resolve(4), 4000);
+});
+
+Promise.race([
+    p4,
+    timeOutPromise(3000)
+]).then((val) => {
+    console.log(val);
+}, (err) => {
+    console.error(err);
+});
+
+
+Promise.none = function none(promises) {
+    let count = 0;
+    const output = [];
+    return new Promise((resolve, reject) => {
+        promises.forEach((pr, i) => {
+            Promise.resolve(pr).then((val) => {
+                reject(val);
+            }, (err) => {
+                count++;
+                output[i] = err;
+                if (count === promises.length) {
+                    resolve(output);
+                }
+            });
+        });
+    });
+};
+
+Promise.last = function last(promises) {
+    let count = 0;
+    let reoslveVal = null;
+    return new Promise((resolve, reject) => {
+        promises.forEach((pr) => {
+            Promise.resolve(pr).then((val) => {
+                count++;
+                reoslveVal = val;
+                if (count === promises.length) {
+                    resolve(val);
+                }
+            }, (err) => {
+                count++;
+                if (count === promises.length) {
+                    reoslveVal === null ? reject(err) : resolve(reoslveVal);
+                }
+            });
+        });
+    });
+}
