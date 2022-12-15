@@ -30,6 +30,22 @@ function isDeepEqual(obj1, obj2) {
     return true;
 }
 
+function isDeepEqualV2(obj1, obj2) {
+    if (typeof obj1 === 'object' && typeof obj2 === 'object' && obj1 !== null && obj2 !== null) {
+
+        if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+
+        if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
+
+        for (const key in obj1) {
+            if (!obj2.hasOwnProperty(key)) return false;
+            if (!isDeepEqualV2(obj1[key], obj2[key])) return false;
+        }
+
+        return true;
+    }
+    return obj1 === obj2;
+}
 
 function getDiff(obj1, obj2) {
     const res = { created: {}, updated: {} };
@@ -213,3 +229,90 @@ Promise.last = function last(promises) {
         });
     });
 }
+
+
+Promise.map = function(promises, cb) {
+    return new Promise((resolve, reject) => {
+        Promise.all(
+           promises.map((pr) => {
+            cb(pr, resolve)
+           })
+        );
+    });
+}
+
+let p1 = Promise.resolve(42);
+let p2 = Promise.resolve(21);
+Promise.map([p1, p2], function(pr, done) {
+    Promise.resolve(pr).then(val => {
+        done(val*2);
+    }, done)
+}).then(vals => console.log(vals));
+
+
+
+// generator utility to handle multiple async
+
+
+function run(gen) {
+    let it = gen();
+
+    return Promise.resolve().then(
+        function handleNext(value) {
+            let next = it.next(value);
+            return (
+                function handleValue(next) {
+                    if (next.done) {
+                        return next.value;
+                    } else {
+                        return Promise.resolve(next.value).then(
+                            handleNext,
+                            function handleError(err) {
+                                Promise.resolve(
+                                    it.throw(err)
+                                ).then(handleValue)
+                            });
+                    }
+                }
+            )(next)
+        });
+}
+
+
+function foo() {
+    return new Promise(resolve => setTimeout(() => resolve(123), 2000))
+}
+
+
+function *main() {
+    try {
+        let res = yield foo();
+        console.log(res);
+    } catch(e) {
+        console.log(e);
+    }
+}
+
+run(main);
+
+
+const btn = document.getElementById('test');
+
+function TripleClick(elm, callback) {
+    let timeStamps = [];
+    elm.addEventListener('click', function(e) {
+        if(timeStamps.length > 0 && e.timeStamp - timeStamps[timeStamps.length -1] > 500) {
+            timeStamps = [];
+        } else {
+          timeStamps.push(e.timeStamp);
+          if(timeStamps.length === 3) {
+            timeStamps = [];
+            callback();
+          }
+        }
+    });
+}
+
+TripleClick(btn, () => console.log('clicked thrice'))
+
+
