@@ -143,40 +143,17 @@ class BinarySearchTree {
         return list;
     }
 
-    validateBFS() {
-        let current = this.root;
-        let queue = [current];
-
-        while (queue.length) {
-            current = queue.shift();
-            if (current.left) {
-                if(current.left.value >= current.value) {
-                    return false;
-                }
-                queue.push(current.left);
-            }
-            if (current.right) {
-                if(current.right.value <= current.value) {
-                    return false;
-                }
-                queue.push(current.right);
-            }
-        }
-
-        return true;
-    }
-
     breadthFirstSearchR(queue, list) {
-        if(!queue.length) {
+        if (!queue.length) {
             return list;
         }
 
         let current = queue.shift();
         list.push(current.value);
-        if(current.left) {
+        if (current.left) {
             queue.push(current.left);
         }
-        if(current.right) {
+        if (current.right) {
             queue.push(current.right);
         }
 
@@ -184,7 +161,7 @@ class BinarySearchTree {
     }
 
     DFSinOrder() {
-       return this.__traverseInOrder(this.root, []);
+        return this.__traverseInOrder(this.root, []);
     }
 
     DFSpreOrder() {
@@ -196,7 +173,7 @@ class BinarySearchTree {
     }
 
     __traverseInOrder(current, list) {
-        if(current.left) {
+        if (current.left) {
             this.__traverseInOrder(current.left, list);
         }
         list.push(current.value);
@@ -208,8 +185,8 @@ class BinarySearchTree {
 
     __traversePreOrder(current, list) {
         list.push(current.value);
-        
-        if(current.left) {
+
+        if (current.left) {
             this.__traversePreOrder(current.left, list);
         }
         if (current.right) {
@@ -219,7 +196,7 @@ class BinarySearchTree {
     }
 
     __traversePostOrder(current, list) {
-        if(current.left) {
+        if (current.left) {
             this.__traversePostOrder(current.left, list);
         }
         if (current.right) {
@@ -228,5 +205,94 @@ class BinarySearchTree {
 
         list.push(current.value);
         return list;
+    }
+
+    isSubTreeLesser(node, value) {
+        if (node === null) {
+            return true;
+        }
+
+        if (
+            node.value <= value &&
+            this.isSubTreeLesser(node.left, value) &&
+            this.isSubTreeLesser(node.right, value)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    isSubTreeGreater(node, value) {
+        if (node === null) {
+            return true;
+        }
+
+        if (
+            node.value > value &&
+            this.isSubTreeGreater(node.left, value) &&
+            this.isSubTreeGreater(node.right, value)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    isValidBST_1(root) {
+        if (root === null) {
+            return true;
+        }
+
+        if (
+            this.isSubTreeLesser(root.left, root.value) && 
+            this.isSubTreeGreater(root.right, root.value) && 
+            this.isValidBST_1(root.left) && 
+            this.isValidBST_1(root.right)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    isValisBSTUtil(current, min, max) {
+        if (current === null) {
+            return true;
+        }
+
+        if (
+            current.value > min
+            && current.value < max
+            && this.isValisBSTUtil(current.left, min, current.value)
+            && this.isValisBSTUtil(current.right, current.value, max)
+        ) {
+            return true;
+        }
+    }
+
+    isValidBST_2(root) {
+        return _this.isValisBSTUtil(root, -Infinity, Infinity)
+    }
+
+    isValidBST_3(root) {
+        let prev = null;
+        if(root === null) {
+            return true;
+        }
+
+        if(!_isValidBST_3(root.left)) {
+            return false;
+        }
+
+        if(prev !== null && root.value < prev.value) {
+            return false;
+        }
+
+        prev = root;
+
+         if(this.isValidBST_3(root.right)) {
+            return true;
+         }
     }
 }
