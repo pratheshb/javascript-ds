@@ -316,3 +316,111 @@ function TripleClick(elm, callback) {
 TripleClick(btn, () => console.log('clicked thrice'))
 
 
+async function test() {
+    const res1 = await new Promise(resolve => setTimeout(() => resolve(1), 2000));
+    const res2 = await new Promise(resolve => setTimeout(() => resolve(res1 +1), 4000));
+
+    return res2;
+}
+
+function* gen() {
+    try {
+        const res1 = yield new Promise(resolve => setTimeout(() => resolve(1), 2000));
+        const res2 = yield new Promise(resolve => setTimeout(() => resolve(res1+1), 4000));
+    
+        console.log(res2);
+    } catch(e) {
+        console.log('error', e);
+    }
+
+}
+
+let it = gen();
+
+let pr1 = it.next().value;
+
+pr1.then(res => {
+    let pr2 = it.next(res).value;
+    pr2.then(res => it.next(res));
+}).catch(e => it.throw(e));
+
+
+function bar() {
+   return new Promise(resolve => setTimeout(() => resolve(1))).then(res1 => new Promise(resolve => setTimeout(() => resolve(res1 +1))))
+}
+
+
+function resolveAfter1Second() {
+    return new Promise(resolve => setTimeout(() => resolve('after 1 sec'), 1000))
+}
+
+function resolveAfter2Second() {
+    return new Promise(resolve => setTimeout(() => resolve('after 1 sec'), 2000))
+}
+
+function parallel() {
+    Promise.all([
+        (async() =>console.log(await resolveAfter2Second()))(),
+        (async() =>console.log(await resolveAfter1Second()))()
+    ])
+}
+
+
+let a = 1;
+
+function *gen() {
+    a = yield;
+    console.log(x);
+}
+
+let it = gen();
+it.next();
+
+
+
+function main(gen) {
+    const it = gen();
+    Promise.resolve().then(
+        function handleNext(value) {
+            let next = it.next(value);
+            if(!next.done) {
+                Promise.resolve(next.value).then(handleNext, err => it.throw(err));
+            }
+        }
+    )
+}
+
+
+function* gen() {
+    console.log(yield* [1, 2, 3])
+}
+
+
+function runAll(...args) {
+    args.forEach(fn => {
+        let it = fn();
+        Promise.resolve().then(function handleNext(val) {
+            let next = it.next(val);
+            if(!next.done) {
+                Promise.resolve(next.value).then(handleNext, err => it.throw(err));
+            }
+        })
+    })
+} 
+
+let res = [];
+function *gen1() {
+    let p1 = new Promise(resolve => setTimeout(() => resolve(1), 1000));
+
+    yield;
+
+    res.push(yield p1);
+}
+
+function *gen2() {
+    let p2 = new Promise(resolve => setTimeout(() => resolve(2), 2000));
+
+    yield;
+
+    res.push(yield p2);
+}
