@@ -135,16 +135,60 @@ function canConstruct(target, words, memo={}) {
     if(target in memo) {
         return memo[target];
     }
-    for(let word of words) {
+    for(const word of words) {
         if(target.indexOf(word) === 0) {
             const suffix = target.slice(word.length);
-            memo[target]= canConstruct(suffix, words, memo);
-            if(memo[target] === true) {
+            if(canConstruct(suffix, words, memo) === true) {
+                memo[target] = true
                 return true;
             }
         }
     }
+    memo[target] = false;
     return false;
 }
+function countConstruct(target, words, memo = {}) {
+    if(target === '') {
+        return 1;
+    }
+    if(target in memo) {
+        return memo[target];
+    }
+    let count = 0;
+    for(const word of words) {
+        if(target.indexOf(word) === 0) {
+            const suffix = target.slice(word.length);
+            const res = countConstruct(suffix, words, memo);
+            count += res;
+        }
+    }
+    memo[target] = count;
+    return count;
+}
 
-console.log(canConstruct('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef', ['e', 'ee', 'eee' , 'eeee']));
+function allConstruct(target, words, memo={}) {
+    if(target === '') {
+        return [[]];
+    }
+
+    if(target in memo) {
+        return memo[target];
+    }
+
+    const res = [];
+
+    for(const word of words) {
+        if(target.indexOf(word) === 0) {
+            const suffix = target.slice(word.length);
+            const suffixWays = allConstruct(suffix, words, memo);
+            const targetWays = suffixWays.map(el => [word, ...el]);
+            res.push(...targetWays);
+        }
+    }
+    memo[target] = res;
+    return res;
+}
+
+console.log(countConstruct('abcdef', ['ab', 'abc', 'cd', 'def', 'abcd', 'ef', 'c']));
+console.log(allConstruct('abcdef', ['ab', 'abc', 'cd', 'def', 'abcd', 'ef', 'c']));
+console.log(allConstruct('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeef', ['e', 'eeee']));
