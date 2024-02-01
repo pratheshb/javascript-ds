@@ -151,6 +151,23 @@ function findIndexByBinarySearch(arr, elm, i) {
 findIndexByBinarySearch([0, 1, 2, 3, 4, 5], 5) // 5
 
 
+function BinarySearch(arr, elm) {
+    let hi = arr.length-1;
+    let lo = 0;
+
+    while(lo < hi) {
+        const mid = lo + Math.floor((hi-lo+1)/2);
+        if(elm < arr[mid]) {
+            hi = mid-1;
+        } else {
+            lo = mid;
+        }
+    }
+
+    return  arr[lo] === mid ? lo : -1
+}
+
+
 // overcome uncaught promise issue by using a method in promise prototype which ignores the error as of now
 Promise.prototype.defer = function() {
     this.then(null, () => {});
@@ -424,3 +441,315 @@ function *gen2() {
 
     res.push(yield p2);
 }
+
+
+function secondMinDiff(arr) {
+    let min = Number.MAX_SAFE_INTEGER;
+    let second_min = min;
+    let low = arr[0];
+    let secondLow = low;
+    let high = low;
+    let secondHigh = low;
+    for(let i = 1; i< arr.length; i++) {
+        const cur = arr[i];
+        let first = Math.min(Math.abs(cur - low), Math.abs(high - cur));
+        let second = Math.min(Math.abs(cur - secondLow), Math.abs(secondHigh - cur));
+        if(first < min) {
+            second_min = min;
+            min = first;
+        } else if(first > min && first < second_min) {
+            second_min = first;
+        } else if(second < second_min) {
+            second_min = second;
+        }
+        if(cur < secondLow) {
+            secondLow = cur;
+        }
+        if(cur >  secondHigh) {
+            secondHigh = cur;
+        }
+        if(cur < low) {
+            secondLow = low
+            low = cur;
+        }
+        if(cur > high) {
+            secondHigh = high;
+            high = cur;
+        }
+    }
+    return second_min;
+}
+
+
+// Given an input string (s) and a pattern (p), implement wildcard pattern matching with support for '?' and '*' where:
+
+// '?' Matches any single character.
+// '*' Matches any sequence of characters (including the empty sequence).
+// The matching should cover the entire input string (not partial).
+
+ 
+
+// Example 1:
+
+// Input: s = "aa", p = "a"
+// Output: false
+// Explanation: "a" does not match the entire string "aa".
+// Example 2:
+
+// Input: s = "aa", p = "*"
+// Output: true
+// Explanation: '*' matches any sequence.
+// Example 3:
+// abcde p = a*e
+// Input: s = "cb", p = "?a"
+// Output: false
+// Explanation: '?' matches 'c', but the second letter is 'a', which does not match 'b'.
+
+function checkPattern(s, p) {
+    let stringIndex = 0;
+    for (let i = 0; i < p.length; i++) {
+        const pattern = p[i];
+        if (pattern === s[stringIndex] || pattern === '?') {
+            stringIndex++;
+        } else if (pattern === '*') {
+            const nextCharInPattern = p[i + 1];
+            if (nextCharInPattern) {
+                const nextIndex = s.lastIndexOf(nextCharInPattern);
+                while (stringIndex < nextIndex) {
+                    stringIndex++;
+                }
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+    return stringIndex === s.length;
+}
+
+
+function calc(input) {
+    const vals = [];
+    const operators = ['+', '-', '*', '/'];
+    let lastOperator = null;
+    for(let val of input) {
+        if(operators.includes(lastOperator)) {
+            if(lastOperator === '*') {
+                val *= vals.pop();
+            } else if(lastOperator === '/') {
+                val = val * vals.pop();
+            } else if(lastOperator === '-') {
+                val = val * -1;
+            }
+            vals.push(val);
+        } else if(lastOperator !== null){
+            vals.push(vals.pop() + val);
+        } else {
+            vals.push(val);
+        }
+        lastOperator = val;
+    }
+    return vals.reduce((acc, cur) => acc+ parseInt(cur, 10), 0);
+}
+
+
+
+
+
+function promisePool(fns, n) {
+    let i = 0;
+    return new Promise(resolve => {
+        function handleResponse() {
+           if(i === fns.length) {
+               resolve('Success');
+           } else if(i < fns.length) {
+              fns[i++]().then(handleResponse);
+           }
+        }
+         while(i < n) {
+           fns[i++]().then(handleResponse);
+        }
+    });
+}
+
+
+async function promisePool(fns, n) {
+    let i = 0;
+    async function handlePromises() {
+        if(i === fns.length) {
+            return;
+        }
+        await fns[i++]();
+        await handlePromises();
+    }
+    const concurrentPromises = Array(n).fill('').map(handlePromises);
+    await Promise.all(concurrentPromises);
+    return 'success';
+}
+
+function throttle(fn, t) {
+    let isThrottled = false;
+    let lastArgs = null;
+    return function(...args) {
+        if(isThrottled) {
+            lastArgs = args;
+        } else {
+            fn(...args);
+            isThrottled = true;
+            setTimeout(() => {
+                if(lastArgs) {
+                    fn(...lastArgs);
+                    lastArgs = null;
+                }
+                isThrottled = false;
+            }, t)
+        }
+    }
+}
+
+let obj = {"a": 'sdsdsd', "b": true, c: {d: 234, e: null}}
+
+function stringify(obj, res='') {
+    res += '{';
+    for(let key in obj) {
+        res+= `"${key}":`;
+        const val = obj[key];
+        if(typeof val === 'object') {
+           res += stringify(val)
+        } else {
+            if(typeof val === 'string') {
+                res += `"${val}",`;
+            } else {
+                res += `${val},`
+            }
+        }
+    }
+    return res+'}';
+}
+
+
+function stringify(obj) {
+    let res = '{';
+    const keys = Object.keys(obj);
+    keys.forEach((key, i) => {
+        res+= `"${key}":`;
+        const val = obj[key];
+        if(val !== null && typeof val === 'object') {
+            res += stringify(val);
+        } else {
+            if(typeof val === 'string') {
+                res += `"${val}"`;
+            } else {
+                res += `${val}`
+            }
+            if(i < keys.length - 1) {
+                res += ',';
+            }
+        }
+    });
+    return res+'}';
+}
+
+
+stringify(obj);
+
+
+function getDiff(obj1, obj2) {
+    const res = {};
+    for(let key in obj1) {
+        if(key in obj2) {
+            const val1 = obj1[key];
+            const val2 = obj2[key];
+            if(typeof val1 === 'object' && typeof val2 === 'object') {
+                const nestedDiff = getDiff(val1, val2);
+                if(Object.keys(nestedDiff).length) {
+                    res[key] = nestedDiff;
+                }
+            } else if(val1 !== val2) {
+                res[key] = [val1, val2]
+            }
+        }
+    }
+
+    return res;
+}
+
+
+function curry(fn) {
+    return function curried(...args) {
+        if(args.length === fn.length) {
+            return fn(...args);
+        }
+
+        return function wrapper(...nextArgs) {
+            return curried(...args, ...nextArgs);
+        }
+    }
+}
+
+
+
+function deepMerge(obj1, obj2) {
+
+    function isArray(obj) {
+        return Array.isArray(obj);
+    }
+
+    function isObject(obj) {
+        return typeof obj === 'object' && obj !== null;
+    }
+
+    if(!isObject(obj1) && !isObject(obj2)) {
+        return obj2;
+    }
+
+    if(isArray(obj1) !== isArray(obj2)) {
+        return obj2;
+    }
+
+    for(const key in obj2) {
+        obj1[key] = deepMerge(obj1, obj2);
+    }
+
+    return obj2;
+}
+
+
+function promisePool(fns, n) {
+    let i = 0;
+    return new Promise(res => {
+        const handleRes = () => {
+            if(i === fns.length) {
+                res();
+            } else {
+                fns[i++]().then(handleRes);
+            }
+        };
+        while(i < n) {
+            fns[i++]().then(handleRes);
+        }
+    })
+}
+
+
+async function promisePool() {
+    
+}
+
+
+fn = (callback, a, b, c) => {
+    return callback(a * b * c);
+  }
+  args = [1, 2, 3]
+  const asyncFunc = promisify(fn);
+  asyncFunc(1, 2, 3).then(console.log); // 6
+
+
+  function promisify(fn) {
+    return function() {
+        return new Promise((resolve, reject) => {
+
+        });
+    }
+  }
